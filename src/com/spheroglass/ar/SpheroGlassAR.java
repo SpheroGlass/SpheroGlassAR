@@ -31,7 +31,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.google.glass.widget.SliderView;
-import com.spheroglass.R;
+import com.spheroglass.ar.R;
 
 public class SpheroGlassAR extends Activity implements CustomCameraView.Listener {
 
