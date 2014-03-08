@@ -116,7 +116,7 @@ public class CustomCameraView extends SurfaceView {
 					int pixel = bmp.getPixel(i, j);
 					int isSphero = isSphero(pixel);
 					if(isSphero > 0) {
-						if(isSphero > maxSphero) {
+						if(isBetterMatch(maxSphero, maxSpheroX, maxSpheroY, isSphero, i, j)) {
 							maxSphero = isSphero;
 							maxSpheroX = i;
 							maxSpheroY = j;
@@ -128,6 +128,18 @@ public class CustomCameraView extends SurfaceView {
 				list.add(new Pair<Integer, Integer>(maxSpheroX - WIDTH/2, HEIGHT/2 - maxSpheroY));
 			}
 			return list;
+		}
+
+		private boolean isBetterMatch(int maxSphero, int maxSpheroX, int maxSpheroY, int isSphero, int i, int j) {
+			if(isSphero > maxSphero) {
+				// better color match
+				return true;
+			} else if(isSphero == maxSphero) {
+				// same color match, but smaller distance to center
+				return Math.abs(i-WIDTH/2)+Math.abs(j-HEIGHT/2) < Math.abs(maxSpheroX-WIDTH/2)+Math.abs(maxSpheroY-HEIGHT/2);
+			} else {
+				return false;
+			}
 		}
 
 		private int isSphero(int pixel) {
