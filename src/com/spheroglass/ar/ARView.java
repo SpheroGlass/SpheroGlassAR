@@ -14,10 +14,6 @@ import android.view.View;
 public class ARView extends View implements CustomCameraView.Listener {
 
 	private Paint p;
-	private int color = Color.RED;
-	
-	private int x = 0;
-	private int y = 0;
 
 	private List<Pair<Integer, Integer>> points = new ArrayList<Pair<Integer,Integer>>();
 
@@ -31,8 +27,6 @@ public class ARView extends View implements CustomCameraView.Listener {
 
 	public void onDraw(Canvas c) {
 		//c.drawColor(Color.BLACK);
-		p.setColor(color);
-		//c.drawText("X", c.getWidth() / 2 + x, c.getHeight() / 2 - y, p);
 		p.setColor(Color.GREEN);
 		c.drawText("o", c.getWidth() / 2, c.getHeight() / 2, p);
 		p.setColor(Color.YELLOW);
@@ -50,8 +44,6 @@ public class ARView extends View implements CustomCameraView.Listener {
 
 	@Override
 	public void setPoint(int x, int y) {
-		this.x = x;
-		this.y = y;
 		points.add(new Pair<Integer, Integer>(x, y));
 		this.invalidate();
 	}

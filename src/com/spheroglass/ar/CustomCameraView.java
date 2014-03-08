@@ -52,8 +52,6 @@ public class CustomCameraView extends SurfaceView {
 			try {
 				camera.setPreviewDisplay(previewHolder);
 				camera.getParameters().setPreviewFormat(PixelFormat.JPEG);
-				//int previewFormat = camera.getParameters().getPreviewFormat();
-				//Log.d("Chameleon", ""+previewFormat);
 				camera.setPreviewCallback(new Camera.PreviewCallback() {
 					@Override
 					public void onPreviewFrame(byte[] data, Camera camera) {
@@ -80,10 +78,6 @@ public class CustomCameraView extends SurfaceView {
 			params.setPreviewSize(WIDTH, HEIGHT);
 			camera.setParameters(params);
 			camera.startPreview();
-			/*List<Size> supportedPreviewSizes = camera.getParameters().getSupportedPreviewSizes();
-			for(Size s : supportedPreviewSizes) {
-				Log.d("SpheroGlassAR", s.width+" "+s.height);
-			}*/
 		}
 
 		@Override
@@ -114,19 +108,12 @@ public class CustomCameraView extends SurfaceView {
 			ByteArrayOutputStream output_stream = new ByteArrayOutputStream();
 			yuvImage.compressToJpeg(rect, RESIZE_QUALITY, output_stream);
 			Bitmap bmp = BitmapFactory.decodeByteArray(output_stream.toByteArray(), 0, output_stream.size());
-			int r = 0, g = 0, b = 0;
 			int maxSphero = 0;
 			int maxSpheroX = 0;
 			int maxSpheroY = 0;
 			for(int i=0; i<bmp.getWidth(); i+=STEP) {
 				for(int j=0; j<bmp.getHeight(); j+=STEP) {
 					int pixel = bmp.getPixel(i, j);
-					/*int rPixel = Color.red(pixel);
-					int gPixel = Color.green(pixel);
-					int bPixel = Color.blue(pixel);
-					if(rPixel > r) r = rPixel;
-					if(gPixel > g) g = gPixel;
-					if(bPixel > b) b = bPixel;*/
 					int isSphero = isSphero(pixel);
 					if(isSphero > 0) {
 						if(isSphero > maxSphero) {
@@ -134,17 +121,12 @@ public class CustomCameraView extends SurfaceView {
 							maxSpheroX = i;
 							maxSpheroY = j;
 						}
-						
-						//list.add(new Pair<Integer, Integer>(i-WIDTH/2, -j+HEIGHT/2));
-						//// First positive is good enough for the moment
-						//return list;
 					}
 				}
 			}
 			if(maxSphero > 0) {
 				list.add(new Pair<Integer, Integer>(maxSpheroX - WIDTH/2, HEIGHT/2 - maxSpheroY));
 			}
-			//Log.d("SpheroGlassAR", "RGB: "+r+", "+g+", "+b);
 			return list;
 		}
 

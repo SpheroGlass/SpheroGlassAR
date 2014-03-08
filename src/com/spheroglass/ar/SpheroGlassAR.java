@@ -319,13 +319,6 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 						}
 					}
 				}, 2000);
-				
-//				new Timer().schedule(new TimerTask() {
-//					@Override
-//					public void run() {
-//						connectionStatus.setVisibility(View.INVISIBLE);
-//					}
-//				}, 2000);
 			}
 		});
 		
