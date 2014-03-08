@@ -26,18 +26,22 @@ public class ARView extends View implements CustomCameraView.Listener {
 	}
 
 	public void onDraw(Canvas c) {
+		int canvasWidth = c.getWidth();
+		int canvasHeight = c.getHeight();
+		float widthFactor = canvasWidth/CustomCameraView.WIDTH;
+		float heigthFactor = canvasHeight/CustomCameraView.HEIGHT;
 		//c.drawColor(Color.BLACK);
 		p.setColor(Color.GREEN);
-		c.drawText("o", c.getWidth() / 2, c.getHeight() / 2, p);
+		c.drawText("o", canvasWidth / 2, canvasHeight / 2, p);
 		p.setColor(Color.YELLOW);
-		c.drawLine(0, c.getHeight()/2, c.getWidth(), c.getHeight()/2, p);
-		c.drawLine(0, c.getHeight()/2 + 15*360/CustomCameraView.HEIGHT, c.getWidth(), c.getHeight()/2 + 15*360/CustomCameraView.HEIGHT, p);
-		c.drawLine(0, c.getHeight()/2 - 15*360/CustomCameraView.HEIGHT, c.getWidth(), c.getHeight()/2 - 15*360/CustomCameraView.HEIGHT, p);
-		c.drawLine(0, c.getHeight()/2 + 40*360/CustomCameraView.HEIGHT, c.getWidth(), c.getHeight()/2 + 40*360/CustomCameraView.HEIGHT, p);
-		c.drawLine(0, c.getHeight()/2 - 40*360/CustomCameraView.HEIGHT, c.getWidth(), c.getHeight()/2 - 40*360/CustomCameraView.HEIGHT, p);
+		c.drawLine(0, canvasHeight/2, canvasWidth, canvasHeight/2, p);
+		c.drawLine(0, canvasHeight/2 + 15*heigthFactor, canvasWidth, canvasHeight/2 + 15*heigthFactor, p);
+		c.drawLine(0, canvasHeight/2 - 15*heigthFactor, canvasWidth, canvasHeight/2 - 15*heigthFactor, p);
+		c.drawLine(0, canvasHeight/2 + 40*heigthFactor, canvasWidth, canvasHeight/2 + 40*heigthFactor, p);
+		c.drawLine(0, canvasHeight/2 - 40*heigthFactor, canvasWidth, canvasHeight/2 - 40*heigthFactor, p);
 		p.setColor(Color.RED);
 		for(Pair<Integer, Integer> point : points) {
-			c.drawText("x", c.getWidth() / 2 + point.first * 640/CustomCameraView.WIDTH, c.getHeight() / 2 - point.second * 360/CustomCameraView.HEIGHT, p);
+			c.drawText("x", canvasWidth / 2 + point.first * widthFactor, canvasHeight / 2 - point.second * heigthFactor, p);
 			c.drawText("x: "+point.first+", y: "+point.second, 50, 50, p);
 		}
 	}
