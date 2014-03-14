@@ -255,9 +255,9 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 						}
 						if(Math.abs(speed)>0.1) {
 							if(speed>0) {
-								robot.drive(normalizeDirection(direction+180), normalizeSpeed(speed));
+								robot.drive(normalizeDirection(direction), normalizeSpeed(speed));
 							} else {
-								robot.drive(normalizeDirection(direction), normalizeSpeed(-speed));
+								robot.drive(normalizeDirection(direction+180), normalizeSpeed(-speed));
 							}
 						} else {
 							robot.drive(normalizeDirection(direction), 0);
@@ -342,8 +342,10 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 
 	@Override
 	public void setPoint(int x, int y) {
-		speed = (float)Math.max(Math.min((Math.sqrt(x*x+y*y)-STOP_DIAMETER)/MAX_SPEED_DIAMETER, 1.0) / 3.0, 0.0);
-		direction = ((int)(Math.atan2(-x, -y) * 180.0 / Math.PI)+360)%360;
+		speed = (float)Math.max(Math.min((Math.sqrt(x*x+y*y)-STOP_DIAMETER)/MAX_SPEED_DIAMETER, 1.0) / 5.0, 0.0);
+		if(speed>0) {
+			direction = ((int)(Math.atan2(-x, -y) * 180.0 / Math.PI)+360)%360;
+		}
 	}
 
 	@Override
