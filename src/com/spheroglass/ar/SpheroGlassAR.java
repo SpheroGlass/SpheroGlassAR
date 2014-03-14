@@ -26,6 +26,9 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.util.Pair;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -35,6 +38,9 @@ import com.spheroglass.ar.R;
 
 public class SpheroGlassAR extends Activity implements CustomCameraView.Listener {
 
+	public static final double MAX_SPEED_DIAMETER = 30.0;
+	public static final double STOP_DIAMETER = 20.0;
+
 	protected static final String TAG = "SpheroGlass";
 
 	private Sphero mRobot;
@@ -42,6 +48,7 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 
 	private float speed = 0f;
 	private int direction = 0;
+	private int offset = 0;
 	private float turn = 0;
 	
 	private SensorManager mSensorManager;
@@ -59,6 +66,8 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 	private CustomCameraView cv;
 
 	private WakeLock wakeLock;
+
+	int mode = -1; // 0 = drive, 1=align
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -93,11 +102,11 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 		turn = 0;
 	}
 
-	/*@Override
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.menu, menu);
+		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
-	}*/
+	}
 
 	@Override
 	protected void onResume() {
@@ -240,23 +249,30 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 			public void run() {
 				Sphero robot = mRobot;
 				if(robot != null && mRobot.isConnected()) {
-					if(Math.abs(turn)>1.5) {
-						direction += 5 * (turn > 0 ? 1 : -1);
-					}
-					if(Math.abs(speed)>0.1) {
-						if(speed>0) {
-							robot.drive(normalizeDirection(direction+180), normalizeSpeed(speed));
-						} else {
-							robot.drive(normalizeDirection(direction), normalizeSpeed(-speed));
+					if(mode == 0) {
+						if(Math.abs(turn)>1.5) {
+							direction += 5 * (turn > 0 ? 1 : -1);
 						}
+						if(Math.abs(speed)>0.1) {
+							if(speed>0) {
+								robot.drive(normalizeDirection(direction+180), normalizeSpeed(speed));
+							} else {
+								robot.drive(normalizeDirection(direction), normalizeSpeed(-speed));
+							}
+						} else {
+							robot.drive(normalizeDirection(direction), 0);
+						}
+					} else if(mode == 1) {
+						offset += 5;
+						robot.drive(normalizeDirection(0), 0);
 					} else {
-						robot.drive(normalizeDirection(direction), 0);
+						robot.drive(normalizeDirection(0), 0);
 					}
 				}
 			}
 
 			private int normalizeDirection(int direction) {
-				return ((direction%360)+360)%360;
+				return (((direction+offset)%360)+360)%360;
 			}
 			
 			private float normalizeSpeed(float speed) {
@@ -315,7 +331,7 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 					public void run() {
 						connectionStatus.setVisibility(View.INVISIBLE);
 						if(stringId == R.string.connection_ok) {
-							changeView();
+							openOptionsMenu();
 						}
 					}
 				}, 2000);
@@ -326,13 +342,8 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 
 	@Override
 	public void setPoint(int x, int y) {
-		speed = (float)Math.max(Math.min((Math.abs(y)-15.0)/25.0, 1.0), 0);
-		speed /= 3.0; // Speed limit
-		if(y>=0) {
-			direction = 0;
-		} else {
-			direction = 180;
-		}
+		speed = (float)Math.max(Math.min((Math.sqrt(x*x+y*y)-STOP_DIAMETER)/MAX_SPEED_DIAMETER, 1.0) / 3.0, 0.0);
+		direction = ((int)(Math.atan2(-x, -y) * 180.0 / Math.PI)+360)%360;
 	}
 
 	@Override
@@ -342,5 +353,41 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 		} else {
 			setPoint(0, 0);
 		}
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.drive:
+			mode = 0;
+			changeView();
+			break;
+		case R.id.align:
+			mode = 1;
+			changeView();
+			break;
+		default:
+			break;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+			mode = -1;
+			openOptionsMenu();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	public float getSpeed() {
+		return speed;
+	}
+
+	public int getDirection() {
+		return direction;
 	}
 }

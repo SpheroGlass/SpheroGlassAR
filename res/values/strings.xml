@@ -9,5 +9,7 @@
     <string name="connection_disconnected">Disconnected</string>
     <string name="show_spheroglass_voice_trigger">go sphero</string>
     <string name="bluetooth_disabled">Bluetooth disabled</string>
+    <string name="align">Align</string>
+    <string name="drive">Drive</string>
     
 </resources>

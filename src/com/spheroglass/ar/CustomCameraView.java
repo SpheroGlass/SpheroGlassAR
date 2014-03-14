@@ -26,7 +26,7 @@ public class CustomCameraView extends SurfaceView {
 	public static final int HEIGHT = 144;
 	public static final int WIDTH = 256;
 	private static final int STEP = 1;
-	private static final int DIVISOR = 5;
+	private static final int DIVISOR = 1;
 
 	public static final int RESIZE_QUALITY = 100;
 
