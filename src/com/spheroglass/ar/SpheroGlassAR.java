@@ -41,20 +41,19 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 	public static final double MAX_SPEED_DIAMETER = 30.0;
 	public static final double STOP_DIAMETER = 20.0;
 
-	protected static final String TAG = "SpheroGlass";
+	protected static final String TAG = "SpheroGlassAR";
 
 	private Sphero mRobot;
 	private SensorListener sensorListener;
 
 	private float speed = 0f;
 	private int direction = 0;
+	private int baseHeading = 0;
+	private int currentHeading = 0;
 	private int offset = 0;
 	private float turn = 0;
 	
 	private SensorManager mSensorManager;
-	private float mAccel;
-	private float mAccelCurrent;
-	private float mAccelLast;
 	private final SensorEventListener mSensorListener = getSensorListener();
 
 	private Timer loopCommandsTimer;
@@ -94,12 +93,11 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 
 	private void initState() {
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-		mAccel = 0.00f;
-		mAccelCurrent = SensorManager.GRAVITY_EARTH;
-		mAccelLast = SensorManager.GRAVITY_EARTH;
 		speed = 0f;
 		direction = 0;
 		turn = 0;
+		baseHeading = 0;
+		currentHeading = 0;
 	}
 
 	@Override
@@ -115,7 +113,7 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 		wakeLock.acquire();
 
 		connectToSphero();
-		//initSensors();
+		initSensors();
 	}
 
 	@Override
@@ -125,11 +123,11 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 		wakeLock.release();
 		
 		disconnectFromSphero();
-		//stopSensors();
+		stopSensors();
 	}
 
 	private void initSensors() {
-		mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	private void stopSensors() {
@@ -272,7 +270,7 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 			}
 
 			private int normalizeDirection(int direction) {
-				return (((direction+offset)%360)+360)%360;
+				return (((direction+offset+currentHeading-baseHeading)%360)+360)%360;
 			}
 			
 			private float normalizeSpeed(float speed) {
@@ -294,16 +292,10 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 		return new SensorEventListener() {
 
 			public void onSensorChanged(SensorEvent se) {
-				float x = se.values[0];
-				float y = se.values[1];
-				float z = se.values[2];
-				mAccelLast = mAccelCurrent;
-				mAccelCurrent = (float) Math.sqrt((double) (x * x + y * y + z * z));
-				float delta = mAccelCurrent - mAccelLast;
-				mAccel = mAccel * 0.9f + delta;
-				
-				speed = (float) (-z / SensorManager.GRAVITY_EARTH);
-				turn = -x;
+				if (se.sensor.getType() == Sensor.TYPE_ORIENTATION) {
+					float[] values = se.values;
+					currentHeading = (int) values[0];
+				}
 			}
 
 			public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -344,7 +336,7 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 	public void setPoint(int x, int y) {
 		speed = (float)Math.max(Math.min((Math.sqrt(x*x+y*y)-STOP_DIAMETER)/MAX_SPEED_DIAMETER, 1.0) / 5.0, 0.0);
 		if(speed>0) {
-			direction = ((int)(Math.atan2(-x, -y) * 180.0 / Math.PI)+360)%360;
+			direction = (int)Math.toDegrees(Math.atan2(-x, -y));
 		}
 	}
 
@@ -362,6 +354,7 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 		switch (item.getItemId()) {
 		case R.id.drive:
 			mode = 0;
+			baseHeading = currentHeading;
 			changeView();
 			break;
 		case R.id.align:
