@@ -34,7 +34,8 @@ public class CustomCameraView extends SurfaceView {
 	SurfaceHolder previewHolder;
 	private List<Listener> listeners = new ArrayList<CustomCameraView.Listener>();
 	private FindSpheroTask findSpheroTask;
-	int divider = 0;
+	private int divider = 0;
+	private int color = Color.GREEN;
 
 	public CustomCameraView(Context context) {
 		super(context);
@@ -159,10 +160,18 @@ public class CustomCameraView extends SurfaceView {
 			//return (green > 100) && (green > red + 20) && (green > blue + 20);
 			//return Math.max(green - red, 0) + Math.max(green - blue, 0);
 			//return Math.max(green - red - 20, 0) + Math.max(green - blue - 20, 0);
-			if((green > 100) && (green > red + 20) && (green > blue + 20)) {
+			/*if((green > 100) && (green > red + 20) && (green > blue + 20)) {
 				return Math.max(green - red - 20, 0) + Math.max(green - blue - 20, 0);
 			} else {
 				return 0;
+			}*/
+			
+			if(color == Color.RED) { 
+				return isColor(red, green, blue);
+			} else if(color == Color.BLUE) {
+				return isColor(blue, red, green);
+			} else {
+				return isColor(green, red, blue);
 			}
 			
 			/*return
@@ -174,6 +183,14 @@ public class CustomCameraView extends SurfaceView {
 			//return (red > 250) && (green > 250) && (blue > 250);
 		}
 
+		private int isColor(int correct, int incorrect1, int incorrect2) {
+			if((correct > 100) && (correct > incorrect1 + 20) && (correct > incorrect2 + 20)) {
+				return Math.max(correct - incorrect1 - 20, 0) + Math.max(correct - incorrect2 - 20, 0);
+			} else {
+				return 0;
+			}
+		}
+
 		@Override
 		protected void onPostExecute(List<Pair<Integer, Integer>> points) {
 			super.onPostExecute(points);
@@ -182,5 +199,9 @@ public class CustomCameraView extends SurfaceView {
 			}
 			findSpheroTask = null;
 		}
+	}
+
+	public void setColor(int color) {
+		this.color = color;
 	}
 }
