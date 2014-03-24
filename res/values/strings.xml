@@ -11,5 +11,8 @@
     <string name="bluetooth_disabled">Bluetooth disabled</string>
     <string name="align">Align</string>
     <string name="drive">Drive</string>
-    
+    <string name="change_color">Change color</string>
+    <string name="title_activity_change_color">ChangeColorActivity</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>

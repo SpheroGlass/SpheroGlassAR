@@ -16,6 +16,7 @@ import orbotix.sphero.SensorListener;
 import orbotix.sphero.Sphero;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -26,15 +27,16 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.util.Pair;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.google.android.glass.touchpad.Gesture;
+import com.google.android.glass.touchpad.GestureDetector;
 import com.google.glass.widget.SliderView;
-import com.spheroglass.ar.R;
 
 public class SpheroGlassAR extends Activity implements CustomCameraView.Listener {
 
@@ -43,6 +45,9 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 
 	protected static final String TAG = "SpheroGlassAR";
 
+	private int[] colors = {Color.RED, Color.GREEN, Color.BLUE};
+	int activeColor = 1;
+	
 	private Sphero mRobot;
 	private SensorListener sensorListener;
 
@@ -56,17 +61,19 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 	private SensorManager mSensorManager;
 	private final SensorEventListener mSensorListener = getSensorListener();
 
+	private GestureDetector mGestureDetector;
+	
 	private Timer loopCommandsTimer;
 	boolean disconnecting = false;
 
 	private SliderView mIndeterm;
 
 	private ARView arView;
-	private CustomCameraView cv;
+	private CustomCameraView customCameraView;
 
 	private WakeLock wakeLock;
 
-	int mode = -1; // 0 = drive, 1=align
+	int mode = -1; // 0 = drive, 1 = align, 2 = change color
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -76,17 +83,20 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 		PowerManager powerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
 		wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, "My Lock");
 		
+		mGestureDetector = createGestureDetector(this);
+		
 		initState();
 	}
 
 	private void changeView() {
 		FrameLayout fl = new FrameLayout(this.getApplicationContext());
 		setContentView(fl);
-		cv = new CustomCameraView(this.getApplicationContext());
+		customCameraView = new CustomCameraView(this.getApplicationContext());
+		customCameraView.setColor(colors[activeColor]);
 		arView = new ARView(getApplicationContext());
-		cv.addListener(arView);
-		cv.addListener(this);
-		fl.addView(cv);
+		customCameraView.addListener(arView);
+		customCameraView.addListener(this);
+		fl.addView(customCameraView);
 		fl.addView(arView);
 		
 	}
@@ -225,7 +235,9 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 		control.setRate(1);
 		mRobot.enableStabilization(true);
 		mRobot.setBackLEDBrightness(.99f);
-		mRobot.setColor(0, 255, 0);
+//		mRobot.setColor(0, 255, 0);
+//		mRobot.setColor(colors[activeColor][0], colors[activeColor][0], colors[activeColor][0]);
+		mRobot.setColor(Color.red(colors[activeColor]), Color.green(colors[activeColor]), Color.blue(colors[activeColor]));
 
 		boolean preventSleepInCharger = mRobot.getConfiguration().isPersistentFlagEnabled(PersistentOptionFlags.PreventSleepInCharger);
 		Log.d(TAG, "Prevent Sleep in charger = " + preventSleepInCharger);
@@ -263,6 +275,8 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 					} else if(mode == 1) {
 						offset += 5;
 						robot.drive(normalizeDirection(0), 0);
+					} else if(mode == 2) {
+						robot.drive(normalizeDirection(0), 0);
 					} else {
 						robot.drive(normalizeDirection(0), 0);
 					}
@@ -270,7 +284,7 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 			}
 
 			private int normalizeDirection(int direction) {
-				return (((direction+offset+currentHeading-baseHeading)%360)+360)%360;
+				return (((direction+offset+(mode==0 ? currentHeading-baseHeading : 0))%360)+360)%360;
 			}
 			
 			private float normalizeSpeed(float speed) {
@@ -361,22 +375,42 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 			mode = 1;
 			changeView();
 			break;
-		default:
+		case R.id.change_color:
+			mode = 2;
+			changeView();
 			break;
+		default:
+			return super.onOptionsItemSelected(item);
 		}
 
-		return super.onOptionsItemSelected(item);
+		return true;
 	}
-	
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-			mode = -1;
-			openOptionsMenu();
-			return true;
-		}
-		return super.onKeyDown(keyCode, event);
-	}
+
+//	@Override
+//	public boolean onKeyDown(int keyCode, KeyEvent event) {
+//		switch(keyCode) {
+//		case KeyEvent.KEYCODE_DPAD_CENTER:
+//			mode = -1;
+//			openOptionsMenu();
+//			break;
+//		case KeyEvent.KEYCODE_TAB:
+//			if(mode == 2){
+//				if(event.isShiftPressed()) {
+//					activeColor = Math.abs((activeColor - 1) % colors.length);
+//					Log.v(TAG, "activeColor["+ activeColor +"]");
+////					mRobot.setColor(colors[activeColor][0], colors[activeColor][0], colors[activeColor][0]);
+//				} else {
+//					activeColor = Math.abs((activeColor + 1) % colors.length);
+//					Log.v(TAG, "activeColor["+ activeColor +"]");
+////					mRobot.setColor(colors[activeColor][0], colors[activeColor][0], colors[activeColor][0]);
+//				}
+//			}
+//			break;
+//		default:
+//			return super.onKeyDown(keyCode, event);
+//		}
+//		return true;
+//	}
 
 	public float getSpeed() {
 		return speed;
@@ -384,5 +418,62 @@ public class SpheroGlassAR extends Activity implements CustomCameraView.Listener
 
 	public int getDirection() {
 		return direction;
+	}
+	
+	 private GestureDetector createGestureDetector(Context context) {
+		GestureDetector gestureDetector = new GestureDetector(context);
+		//Create a base listener for generic gestures
+		gestureDetector.setBaseListener( new GestureDetector.BaseListener() {
+			@Override
+			public boolean onGesture(Gesture gesture) {
+				if (gesture == Gesture.TAP) {
+					mode = -1;
+					openOptionsMenu();
+					return true;
+				} else if (gesture == Gesture.TWO_TAP) {
+					// do something on two finger tap
+					return true;
+				} else if (gesture == Gesture.SWIPE_RIGHT) {
+					if(mode == 2){
+						activeColor = (((activeColor - 1) % colors.length) + colors.length) % colors.length;
+						Log.v(TAG, "onGesture - activeColor["+ activeColor +"]");
+						mRobot.setColor(Color.red(colors[activeColor]), Color.green(colors[activeColor]), Color.blue(colors[activeColor]));
+						customCameraView.setColor(colors[activeColor]);
+						
+					}
+					return true;
+				} else if (gesture == Gesture.SWIPE_LEFT) {
+					if(mode == 2){
+						activeColor = Math.abs((activeColor + 1) % colors.length);
+						Log.v(TAG, "onGesture - activeColor["+ activeColor +"]");
+						mRobot.setColor(Color.red(colors[activeColor]), Color.green(colors[activeColor]), Color.blue(colors[activeColor]));
+						customCameraView.setColor(colors[activeColor]);
+					}
+					return true;
+				}
+				return false;
+			}
+		});
+//		gestureDetector.setFingerListener(new GestureDetector.FingerListener() {
+//			@Override
+//			public void onFingerCountChanged(int previousCount, int currentCount) {
+//				// do something on finger count changes
+//			}
+//		});
+//		gestureDetector.setScrollListener(new GestureDetector.ScrollListener() {
+//			@Override
+//			public boolean onScroll(float displacement, float delta, float velocity) {
+//				return true;
+//			}
+//		});
+		return gestureDetector;
+	}
+
+	@Override
+	public boolean onGenericMotionEvent(MotionEvent event) {
+		if (mGestureDetector != null) {
+			return mGestureDetector.onMotionEvent(event);
+		}
+		return false;
 	}
 }

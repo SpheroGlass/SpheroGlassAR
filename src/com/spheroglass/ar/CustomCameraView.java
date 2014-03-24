@@ -15,6 +15,7 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.util.Pair;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -171,7 +172,7 @@ public class CustomCameraView extends SurfaceView {
 			} else {
 				return isColor(green, red, blue);
 			}
-			
+			//return isColor(green, red, blue);
 			/*return
 					((green > 100) && (green > red + 20) && (green > blue + 20))
 					||

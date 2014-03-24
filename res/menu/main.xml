@@ -8,5 +8,10 @@
         android:id="@+id/drive"
         android:title="@string/drive"
         android:icon="@drawable/ic_icon" />
+    
+    <item
+        android:id="@+id/change_color"
+        android:title="@string/change_color"
+        android:icon="@drawable/ic_icon" />
 
 </menu>
