@@ -21,5 +21,5 @@ Mode 2:
 
 Pairing your Sphero and Google Glass via bluetooth:
   
-* Use Bluetooth Manager to pair Glass with Sphero
+* Use Bluetooth Manager for Glass to pair Glass with Sphero
 * Install it from: https://github.com/DDRBoxman/Bluetooth-Manager-for-Glass
